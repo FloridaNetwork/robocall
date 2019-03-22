@@ -1,0 +1,92 @@
+<dialplan name="Root">
+     <setvar name="counter" varname="Counter">0</setvar>
+     <amd name="001_dwdance_info" type="1">
+          <live>
+               <goto name="001_MAIN_MENU">MAIN_MENU</goto>
+          </live>
+          <machine>
+               <play name="This is a message for" type="tts" voice="female2">This is a message from d w dance, for ${call.field.b}. we would like to know if you are interested in our voice responses to be reminded of Special Dance events by the Dance studio. Please see opt in or opt out at w w w dot d w dance dot com. or response to our text message.</play>
+               <hangup name="HangUp"/>
+          </machine>
+     </amd>
+     <menu name="MAIN_MENU" maxDigits="1" timeout="5000">
+          <play name="Hello" type="tts">Hello ${call.field.b}.</play>
+          <play name="Play_menu" type="tts" voice="female2">this is a message from the Dance studio. We hope you enjoyed our services of giving you dance information in florida. We are now minimizing our limit on phone calls. Would you like to continue the voice information line to keep your dancing updated? Press 1 only for special events. Press 2 for all events. Press 3 to discontinue. Press 7 to get this information on your phone by text</play>
+          <keypress name="1_KP_Confirm" pressed="1">
+               <stash name="STASH_SpecialEventOnlyRequest" varname="SpecialEventOnlyRequest">${call.lastinput}</stash>
+               <play name="PLAY_ThankYou" type="tts" voice="female2">Thank you, We will continue sending you information about special events only. This voicemail was sponsored by d w dance. Thank you, we will contact you soon. Bye for now.</play>
+               <hangup name="stop"/>
+          </keypress>
+          <keypress name="2_KP_Reschedule" pressed="2">
+               <stash name="Stash_AllEventRequest" varname="AllEventRequest">${call.lastinput}</stash>
+               <play name="Play_SendAllEvent" type="tts" voice="female2">Thank you, We will continue sending you information about all events. This voicemail was sponsored by d w dance. These messages are for the students and teachers and there students from the dance studio. Looking forwards seeing you soon. Bye for now.</play>
+               <hangup name="hu"/>
+          </keypress>
+          <keypress name="3_KP_Information" pressed="3">
+               <stash name="2_5_Stash_DNC" varname="DNC">${call.lastinput}</stash>
+               <goto name="5_DNC">5_KP_DNC</goto>
+          </keypress>
+          <keypress name="4_KP_Magic_info" pressed="4">
+               <stash name="4_Stash_invalit" varname="invalit">${call.lastinput}</stash>
+               <goto name="4_GOTO_6_cominng">6_KP_coming</goto>
+          </keypress>
+          <keypress name="5_KP_DNC" pressed="5">
+               <stash name="5_STASH_DNC" varname="DNC">${call.lastinput}</stash>
+               <dnc >${call.callerid}
+               </dnc>
+               <play name="5_PLAY_DNC" type="tts" voice="female2">Thank you, you are now removed from d w dance, tango toes, Dancelovers and Ballroom 66 voicemail broadcast service.  If you think you have unsubscribed in error or still get messages. Than please visit w w w dot d w dance dot com. Goodbye.</play>
+               <hangup name="5_HU"/>
+          </keypress>
+          <keypress name="7_KP_" pressed="7">
+               <goto name="7_GOTO_sms">SMS</goto>
+          </keypress>
+          <keypress name="8_KP_" pressed="8">
+               <goto name="8_GOTO_MM">MAIN_MENU</goto>
+          </keypress>
+          <keypress name="9_KP_" pressed="9">
+               <goto name="9_GOTO_MM">MAIN_MENU</goto>
+          </keypress>
+          <keypress name="0_KP_ans_mach" pressed="0">
+               <stash name="0_STASH_receptionist" varname="receptionist">${call.lastinput}</stash>
+               <goto name="0_GOTO_contact">1_LifeCall</goto>
+          </keypress>
+          <keypress pressed="timeout">
+               <setvar name="SETVAR_counter1" varname="Counter">${Counter}+1</setvar>
+               <if name="BUTIF_counter" expr="${Counter} &gt; 1">
+                    <play name="PLAY_message" type="tts" voice="female2">O K. Just one moment. I see this is not working for you. Please leave a message after the tone...
+when finished press the pound or hash key or just hang up</play>
+                    <record name="001_voice_recording" varname="001_voice" background="true">                    </record>
+                    <goto name="GOTO_ans_mach">001_MAIN_MENU</goto>
+               </if>
+               <play name="PLAY_TryAGAIN " type="tts" voice="female2">Oh dear.  You are taking a long time.  Try one more time.</play>
+               <goto name="GOTO_MainMNU">MAIN_MENU</goto>
+          </keypress>
+          <hangup name="theEnd"/>
+          <hangup name="HU"/>
+     </menu>
+     <menu name="Contact_MENU" maxDigits="11" timeout="20000">
+          <play name="choice" type="tts" voice="female2">one moment please...</play>
+          <record name="Hans" varname="Hans" background="true">          </record>
+          <transfer name="transfer2hans" callerid="${call.callerid}" continue-after="true" timeout="30" whisper-tts="d w dance calling d w dance calling d w dance calling">17272720911</transfer>
+     </menu>
+     <menu name="SMS" maxDigits="10" timeout="15000">
+          <play name="Play_enterTelNum" type="tts" voice="female2">To get more information about tango toes by text. please enter the 10 digit telephone number then receive a message by phone.</play>
+          <keypress name="KP_telNum" pressed="default">
+               <stash name="StashNumber" varname="number - ">${call.phonenumber}</stash>
+               <setvar name="SetVarLastNumber" varname="number">${call.lastinput}</setvar>
+               <setvar name="SetVarSplit" varname="ExplodedInput">"${number}".split("").join(" ");</setvar>
+               <play name="Play_telNum" type="tts" voice="female2">You entered.  ${ExplodedInput}.</play>
+               <menu name="Confirm" maxDigits="1" timeout="3500">
+                    <play name="Play_KP" type="tts" voice="female2"> Is this correct?  Press 1 for yes or press 2 to try again.</play>
+                    <keypress name="KP_sentNow" pressed="1">
+                         <sms name="BEENSent" to="${number}">Please see www.dwdance.com to book a private lesson. Please visit out information page on https://www.dwdance.com/dance-info</sms>
+                         <play name="sentTextNow" type="tts" voice="female2">Thank you. Your message has been sent. You will now return to the main menu.</play>
+                         <goto name="MainMenuLast">MAIN_MENU</goto>
+                    </keypress>
+                    <keypress name="keypress" pressed="2">
+                         <goto name="GOTO_beginning">SMS</goto>
+                    </keypress>
+               </menu>
+          </keypress>
+     </menu>
+</dialplan>
